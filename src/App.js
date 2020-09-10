@@ -1,26 +1,49 @@
-import React from "react";
+import React, { useState, useEffect } from 'react';
+import api from './services/api';
 
 import "./styles.css";
 
 function App() {
+  const [projects, setProjects] = useState([]);
+
+  useEffect(() => {
+    api.get('repositories').then(response => {
+      setProjects(response.data);
+    })
+  }, []);
+
   async function handleAddRepository() {
-    // TODO
+    const response = await api.post('repositories', {
+      title: `Desafio ReactJS ${Date.now()}`,
+      url: `https://github.com/Rocketseat/repository${Date.now()}`,
+      techs: ["REACT", "REACT-NATIVE", "MYSQL"]
+
+    });
+    const project = response.data;
+    setProjects([...projects, project]);
   }
 
   async function handleRemoveRepository(id) {
-    // TODO
+    await api.delete(`repositories/${id}`);
+
+    const projectsArray = [...projects];
+    const projectIndex = projectsArray.findIndex(project => project.id === id);
+
+    projectsArray.splice(projectIndex, 1);
+
+    setProjects(projectsArray);
+
   }
 
   return (
+
     <div>
       <ul data-testid="repository-list">
-        <li>
-          Repositório 1
-
-          <button onClick={() => handleRemoveRepository(1)}>
-            Remover
-          </button>
-        </li>
+        {projects.map(project =>
+          <li key={project.id}>{project.title}
+            <button onClick={() => handleRemoveRepository(project.id)}>Remover</button></li>
+        )
+        }
       </ul>
 
       <button onClick={handleAddRepository}>Adicionar</button>
